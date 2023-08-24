@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import Header from './Header'
 import { CopyBlock, dracula } from "react-code-blocks";
-
+import Header from './Header'
+import Dropdown from './Dropdown';
 
 function Page() {
   const [input1, setInput1] = useState('')
@@ -9,7 +9,8 @@ function Page() {
   const [response, setResponse] = useState('')
   const [getResponse, setGetResponse] = useState('')
   const [getresponse, setGetresponse] = useState('')
-
+  const[dropdown, setDropdown] = useState('')
+ 
   const handleDelete = async (itemId) => {
     try {
       // Send a DELETE request to the server to delete the item
@@ -18,7 +19,6 @@ function Page() {
       })
       const responseData = await response.json()
       setResponse(responseData)
-      setGetresponse('')
     } catch (error) {
       console.error('Error deleting item:', error);
     }
@@ -37,11 +37,10 @@ function Page() {
           input1: input1,
           input2: input2
         })
-      });
+      })
 
       const responseData = await response.json()
       setResponse(responseData)
-      setGetresponse('')
     } catch (error) {
       console.error('Error sending POST request:', error)
     }
@@ -51,19 +50,20 @@ function getItems(){
   .then(response => response.json())
   .then(data => {
     setGetResponse(data.items)
-    if(response === ""){
-      setGetresponse(data)
-    }
+    setGetresponse(data)
+    
   })
   .catch(error => {
     console.error('Error sending GET request:', error)
   })
-
 }
   useEffect(()=>{
     getItems()
   },[response])
-
+const handleDropdown = (e)=>{
+  let value = e.target.value
+  value === dropdown ? setDropdown('') : setDropdown(value)
+}
   return (
     <>
     <Header></Header>
@@ -71,17 +71,14 @@ function getItems(){
       <div className='p-6 m-6 w-1/2'>
         <div className='bg-slate-100 mb-6 p-6 rounded-lg'>
           <h1 className='pb-5 text-center'>POST Request</h1>
-          <form onSubmit={handleSubmit} className='grid gap-3 justify-items-center w-full'>
-            
-             
+          <form onSubmit={handleSubmit} className='grid gap-3 justify-items-center w-full'>     
               <input
                 type="text"
                 placeholder='Name....'
                 value={input1}
                 onChange={(e) => setInput1(e.target.value)}
                 className='p-1 w-4/6 justify-self-center'
-              />
-            
+              />            
               <input
                 type="text"
                 placeholder='Description....'
@@ -89,8 +86,7 @@ function getItems(){
                 onChange={(e) => setInput2(e.target.value)}
                 className='p-1 w-4/6 justify-self-center'
               />
-            
-            
+
             <button type="submit" className='mt-4 pr-6 pl-6 pb-1 pt-1 bg-blue-400 hover:bg-blue-500 rounded-lg text-white'>Submit</button>
           </form>
           </div>
@@ -136,23 +132,32 @@ function getItems(){
       <div className='m-12 p-12 rounded-lg  bg-slate-100 w-1/2'>
         <h2>Server response:</h2>
     {response && (
-      <div>
-        <p className='break-normal'>{JSON.stringify(response, null, 2)}</p>
-      </div>
+      <CopyBlock 
+      language="javascript"
+      text={JSON.stringify(response, null, 2)}
+      theme={dracula}
+      />
+
     )}
+    <br />
     {getresponse && (
-      <div>
-        <p className='break-normal'>{JSON.stringify(getresponse, null, 2)}</p>
-      </div>
+      <CopyBlock 
+      language="javascript"
+      text={JSON.stringify(getresponse, null, 2)}
+      theme={dracula}
+      />
+
     )}
+    <br />
+        <h2>API Requests</h2>
       <div>
-        <h2>APIs</h2>
-        <select>
-          <option value="get">GET</option>
-          <option value="vegetable">POST</option>
-          <option value="meat">DELETE</option>
-        </select>
-      </div>
+        <button value="get" onClick={(e)=>handleDropdown(e)} className='flex justify-between bg-white py-2 px-2 w-full'>
+          <div className=''>GET API</div>
+          <div className=''>
+            <Dropdown />
+          </div>
+        </button>
+        {dropdown === 'get' && 
       <CopyBlock 
       language="javascript"
       text={
@@ -161,19 +166,67 @@ function getItems(){
         .then(response => response.json())
         .then(data => {
           setGetResponse(data.items)
-          if(response === ""){
-            setGetresponse(data)
-          }
         })
         .catch(error => {
           console.error('Error sending GET request:', error)
         })
- 
- `
+        `
       }
       theme={dracula}
-      
-       ></CopyBlock>
+      />
+    }
+      </div>
+      {/*******************************************************************************************************************************/}
+      <div>
+        <button value="post" onClick={(e)=>handleDropdown(e)} className='flex justify-between bg-white py-2 px-2 w-full'>
+          <div className=''>POST API</div>
+          <div className=''>
+            <Dropdown />
+          </div>
+        </button>
+        {dropdown === 'post' && 
+      <CopyBlock 
+      language="javascript"
+      text={
+        `
+        fetch('https://zany-tan-colt-tam.cyclic.cloud/post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input1: input1,
+            input2: input2
+          })
+        })
+        `
+      }
+      theme={dracula}
+      />
+    }
+      </div>
+      {/*******************************************************************************************************************************/}
+      <div>
+        <button value="delete" onClick={(e)=>handleDropdown(e)} className='flex justify-between bg-white py-2 px-2 w-full'>
+          <div className=''>DELETE API</div>
+          <div className=''>
+            <Dropdown />
+          </div>
+        </button>
+        {dropdown === 'delete' && 
+      <CopyBlock 
+      language="javascript"
+      text={
+        `
+fetch('https://zany-tan-colt-tam.cyclic.cloud/delete/$ {itemId}', {
+      method: 'DELETE'
+     })
+        `
+      }
+      theme={dracula}
+      />
+    }
+      </div>
       </div>
     </div>
     </>
